@@ -1,0 +1,23 @@
+{
+  "name": "mailbox-sync-example",
+  "main": "src/server.ts",
+  "compatibility_date": "2025-02-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MailboxAgent",
+        "class_name": "MailboxAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MailboxAgent"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

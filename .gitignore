@@ -140,4 +140,4 @@ dist
 .dev.vars
 
 # macOS
-.DS_Store
+.DS_Store.envrc

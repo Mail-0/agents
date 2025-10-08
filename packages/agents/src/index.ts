@@ -200,6 +200,16 @@ function getNextCronTime(cron: string) {
 }
 
 export type { TransportType } from "./mcp/types";
+export {
+  SyncAgent,
+  type QueryDefinition,
+  type MutationDefinition,
+  type PaginationStrategy,
+  CURRENT_PROTOCOL_VERSION,
+  QUERY_TIMEOUT,
+  MUTATION_TIMEOUT
+} from "./sync-agent";
+export { useDurableQuery, useDurableMutation } from "./sync-react";
 
 /**
  * MCP Server state update message from server -> Client
