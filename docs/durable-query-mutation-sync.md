@@ -126,6 +126,9 @@ static options = {
 Add new message types to `MessageType` enum:
 
 ```typescript
+// Protocol version for compatibility checking
+export const CURRENT_PROTOCOL_VERSION = "1.0.0";
+
 export enum MessageType {
   // ... existing types
   CF_AGENT_QUERY_SUBSCRIBE = "cf_agent_query_subscribe",
@@ -137,6 +140,10 @@ export enum MessageType {
   CF_AGENT_HEARTBEAT = "cf_agent_heartbeat",
   CF_AGENT_VERSION_MISMATCH = "cf_agent_version_mismatch"
 }
+
+// Timeout constants for consistency
+export const QUERY_TIMEOUT = 30000; // 30 seconds
+export const MUTATION_TIMEOUT = 30000; // 30 seconds
 ```
 
 ### Core Components
@@ -320,6 +327,21 @@ export class QuerySubscriptionManager {
       this.connectionGroups.delete(userId);
     }
   }
+
+  addConnectionToUser(connectionId: string, userId: string) {
+    // Add a connection to the user's connection group
+    if (!this.connectionGroups.has(userId)) {
+      this.connectionGroups.set(userId, new Set());
+    }
+    this.connectionGroups.get(userId)!.add(connectionId);
+
+    // Update all existing subscriptions for this user with the new connection
+    this.agent.sql`
+      UPDATE cf_agents_query_subscriptions 
+      SET connection_ids = ${JSON.stringify([...this.connectionGroups.get(userId)!])}
+      WHERE user_id = ${userId}
+    `;
+  }
 }
 ```
 
@@ -346,8 +368,8 @@ private async broadcastQueryUpdate(queryName: string, version: number) {
 
     // Store update for hibernation recovery
     this.sql`
-      INSERT INTO cf_agents_query_updates (query_name, query_args, version, created_at)
-      VALUES (${queryName}, ${sub.query_args}, ${version}, ${Date.now()})
+      INSERT INTO cf_agents_query_updates (query_name, query_args, version, data, created_at)
+      VALUES (${queryName}, ${sub.query_args}, ${version}, ${JSON.stringify(data)}, ${Date.now()})
     `;
 
     // Send updated data to all user's connections
@@ -1352,6 +1374,20 @@ export class Agent extends Server {
     }
   }
 
+  private async verifyJWT(token: string): Promise<{ sub?: string; userId?: string }> {
+    // IMPLEMENTATION NOTE: This is a stub. In production, implement JWT verification
+    // using your chosen JWT library (e.g., jose, jsonwebtoken) or Cloudflare's built-in
+    // JWT verification if using Cloudflare Access.
+    //
+    // Example with jose:
+    // import { jwtVerify } from 'jose';
+    // const secret = new TextEncoder().encode(this.env.JWT_SECRET);
+    // const { payload } = await jwtVerify(token, secret);
+    // return payload;
+
+    throw new Error("verifyJWT must be implemented with your authentication system");
+  }
+
   private async verifyUserAccess(userId: string, message: any): Promise<boolean> {
     // Implement tenant isolation logic
     // Ensure user can only access their own data
@@ -1367,6 +1403,44 @@ export class Agent extends Server {
     }
 
     return false;
+  }
+
+  private async canUserAccessQuery(userId: string, queryName: string, args: any): Promise<boolean> {
+    // IMPLEMENTATION NOTE: Implement your authorization logic here
+    //
+    // Examples:
+    // 1. Check if the query args contain a userId that matches the authenticated user
+    // 2. Check role-based permissions stored in a database
+    // 3. Validate against a permissions table
+    //
+    // Example implementation:
+    // if (args.userId && args.userId !== userId) {
+    //   return false; // User trying to access another user's data
+    // }
+    // return true;
+
+    // For now, allow all queries (INSECURE - replace in production)
+    console.warn("canUserAccessQuery not implemented - allowing all access");
+    return true;
+  }
+
+  private async canUserExecuteMutation(userId: string, mutationName: string, args: any): Promise<boolean> {
+    // IMPLEMENTATION NOTE: Implement your authorization logic here
+    //
+    // Examples:
+    // 1. Check if mutation affects resources owned by the user
+    // 2. Validate write permissions for specific mutation types
+    // 3. Implement rate limiting per mutation type
+    //
+    // Example implementation:
+    // const resource = await this.sql<{ owner_id: string }>`
+    //   SELECT owner_id FROM resources WHERE id = ${args.resourceId}
+    // `[0];
+    // return resource?.owner_id === userId;
+
+    // For now, allow all mutations (INSECURE - replace in production)
+    console.warn("canUserExecuteMutation not implemented - allowing all access");
+    return true;
   }
 
   private async isRateLimited(userId: string): Promise<boolean> {
@@ -1491,6 +1565,125 @@ CREATE INDEX idx_rate_limits_user ON cf_agents_rate_limits(user_id, created_at);
 - ✅ **Query performance**: Proper indexing
 - ✅ **Memory management**: Subscription cleanup
 - ✅ **Debug logging**: Comprehensive error reporting
+
+### Data Retention & Cleanup Strategy
+
+**Challenge**: Historical tables (`cf_agents_query_updates`, `cf_agents_mutations`, `cf_agents_rate_limits`) will grow indefinitely without cleanup.
+
+**Solution**: Implement automated cleanup strategies based on data age and storage limits.
+
+#### Cleanup Implementation
+
+```typescript
+export class Agent extends Server {
+  // Retention periods (configurable)
+  private readonly QUERY_UPDATE_RETENTION = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly MUTATION_RETENTION = 7 * 24 * 60 * 60 * 1000; // 7 days
+  private readonly RATE_LIMIT_RETENTION = 60 * 60 * 1000; // 1 hour
+
+  async onStart() {
+    // Schedule cleanup to run periodically (e.g., every hour)
+    await this.schedule("0 * * * *", "cleanupOldData", {});
+  }
+
+  async cleanupOldData() {
+    const now = Date.now();
+
+    // Clean up old query updates (keep only recent for hibernation recovery)
+    const updatesCutoff = now - this.QUERY_UPDATE_RETENTION;
+    this.sql`
+      DELETE FROM cf_agents_query_updates
+      WHERE created_at < ${updatesCutoff}
+    `;
+
+    // Clean up old mutation results (idempotency only needs recent data)
+    const mutationsCutoff = now - this.MUTATION_RETENTION;
+    this.sql`
+      DELETE FROM cf_agents_mutations
+      WHERE created_at < ${mutationsCutoff}
+    `;
+
+    // Clean up old rate limit entries
+    const rateLimitCutoff = now - this.RATE_LIMIT_RETENTION;
+    this.sql`
+      DELETE FROM cf_agents_rate_limits
+      WHERE created_at < ${rateLimitCutoff}
+    `;
+
+    console.log("Cleanup completed", {
+      timestamp: now,
+      retentionPolicies: {
+        queryUpdates: `${this.QUERY_UPDATE_RETENTION / (60 * 60 * 1000)}h`,
+        mutations: `${this.MUTATION_RETENTION / (24 * 60 * 60 * 1000)}d`,
+        rateLimits: `${this.RATE_LIMIT_RETENTION / (60 * 60 * 1000)}h`
+      }
+    });
+  }
+
+  // Alternative: Size-based cleanup if time-based isn't sufficient
+  async cleanupBySize() {
+    // Keep only the most recent N query updates per query
+    const MAX_UPDATES_PER_QUERY = 100;
+
+    const queries = this.sql<{ query_name: string; query_args: string }>`
+      SELECT DISTINCT query_name, query_args 
+      FROM cf_agents_query_updates
+    `;
+
+    for (const query of queries) {
+      // Delete all but the most recent N updates
+      this.sql`
+        DELETE FROM cf_agents_query_updates
+        WHERE query_name = ${query.query_name}
+          AND query_args = ${query.query_args}
+          AND id NOT IN (
+            SELECT id FROM cf_agents_query_updates
+            WHERE query_name = ${query.query_name}
+              AND query_args = ${query.query_args}
+            ORDER BY version DESC
+            LIMIT ${MAX_UPDATES_PER_QUERY}
+          )
+      `;
+    }
+  }
+}
+```
+
+#### Cleanup Best Practices
+
+1. **Query Updates**: Keep 24 hours for hibernation recovery. Most hibernation events resolve within minutes to hours.
+
+2. **Mutations**: Keep 7 days for idempotency. This protects against client retries and allows for debugging recent issues.
+
+3. **Rate Limits**: Keep 1 hour. Only needed for active rate limit windows.
+
+4. **Monitoring**: Track cleanup metrics to ensure storage doesn't grow unbounded:
+
+   ```typescript
+   const metrics = this.sql<{ table_name: string; row_count: number }>`
+     SELECT 
+       'query_updates' as table_name,
+       COUNT(*) as row_count
+     FROM cf_agents_query_updates
+     UNION ALL
+     SELECT 
+       'mutations' as table_name,
+       COUNT(*) as row_count
+     FROM cf_agents_mutations
+     UNION ALL
+     SELECT 
+       'rate_limits' as table_name,
+       COUNT(*) as row_count
+     FROM cf_agents_rate_limits
+   `;
+   ```
+
+5. **Storage Alerts**: Implement alerts when approaching Durable Object SQLite limits (10GB):
+   ```typescript
+   const storageInfo = await this.ctx.storage.sql.exec("PRAGMA page_count");
+   const pageSize = await this.ctx.storage.sql.exec("PRAGMA page_size");
+   // Calculate approximate size and alert if > 8GB (80% of limit)
+   ```
 
 ### Storage Backend Selection with Drizzle ORM
 

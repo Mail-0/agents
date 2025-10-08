@@ -98,7 +98,11 @@ import {
 import { useEffect, useRef } from "react";
 import { nanoid } from "nanoid";
 import type { useAgent } from "agents/react";
-import { MessageType } from "agents/ai-types";
+import {
+  MessageType,
+  CURRENT_PROTOCOL_VERSION,
+  QUERY_TIMEOUT
+} from "agents/ai-types";
 
 export function useDurableQuery<TArgs, TResult>(
   agent: ReturnType<typeof useAgent>,
@@ -171,7 +175,7 @@ export function useDurableQuery<TArgs, TResult>(
             cleanup();
             reject(new Error("Query timeout"));
           }
-        }, 30000); // Increased timeout
+        }, QUERY_TIMEOUT); // 30 seconds
 
         const handleMessage = (event: MessageEvent) => {
           if (!isSubscribed || typeof event.data !== "string") return;
@@ -306,7 +310,7 @@ import {
 import { useRef } from "react";
 import { nanoid } from "nanoid";
 import type { useAgent } from "agents/react";
-import { MessageType } from "agents/ai-types";
+import { MessageType, MUTATION_TIMEOUT } from "agents/ai-types";
 
 export function useDurableMutation<TArgs, TResult>(
   agent: ReturnType<typeof useAgent>,
@@ -333,7 +337,7 @@ export function useDurableMutation<TArgs, TResult>(
         const timeout = setTimeout(() => {
           cleanup();
           reject(new Error("Mutation timeout"));
-        }, 30000);
+        }, MUTATION_TIMEOUT); // 30 seconds
 
         const handleMessage = (event: MessageEvent) => {
           if (typeof event.data !== "string") return;
@@ -426,7 +430,7 @@ import {
 import { useEffect, useRef } from "react";
 import { nanoid } from "nanoid";
 import type { useAgent } from "agents/react";
-import { MessageType } from "agents/ai-types";
+import { MessageType, QUERY_TIMEOUT } from "agents/ai-types";
 
 export function useDurableInfiniteQuery<
   TArgs extends Record<string, any>,
@@ -476,7 +480,7 @@ export function useDurableInfiniteQuery<
         const timeout = setTimeout(() => {
           cleanup();
           reject(new Error("Query timeout"));
-        }, 10000);
+        }, QUERY_TIMEOUT); // 30 seconds - consistent with regular queries
 
         const handleMessage = (event: MessageEvent) => {
           if (typeof event.data !== "string") return;
