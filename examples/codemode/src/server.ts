@@ -1,4 +1,5 @@
-import { routeAgentRequest, Agent, callable, type Connection } from "agents";
+import { routeAgentRequest, callable, type Connection } from "agents";
+import { SyncAgent } from "agents-sync";
 
 import { getSchedulePrompt } from "agents/schedule";
 
@@ -59,7 +60,7 @@ type State = {
   loading: boolean;
 };
 
-export class Codemode extends Agent<Env, State> {
+export class Codemode extends SyncAgent<Env, State> {
   /**
    * Handles incoming chat messages and manages the response stream
    */

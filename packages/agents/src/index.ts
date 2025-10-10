@@ -748,7 +748,7 @@ export class Agent<
 
     const _onConnect = this.onConnect.bind(this);
     this.onConnect = (connection: Connection, ctx: ConnectionContext) => {
-      // TODO: This is a hack to ensure the state is sent after the connection is established
+      // TODO: This is a hack to ensure the state is sent after the connection is established (important-comment)
       // must fix this
       return agentContext.run(
         { agent: this, connection, request: ctx.request, email: undefined },
@@ -862,13 +862,9 @@ export class Agent<
     INSERT OR REPLACE INTO cf_agents_state (id, state)
     VALUES (${STATE_WAS_CHANGED}, ${JSON.stringify(true)})
   `;
-    this.broadcast(
-      JSON.stringify({
-        state: state,
-        type: MessageType.CF_AGENT_STATE
-      }),
-      source !== "server" ? [source.id] : []
-    );
+
+    this._broadcastStateUpdate(state, source);
+
     return this._tryCatch(() => {
       const { connection, request, email } = agentContext.getStore() || {};
       return agentContext.run(
@@ -899,13 +895,23 @@ export class Agent<
   }
 
   /**
+   * Protected hook for broadcasting state updates to connected clients.
+   * No-op in base Agent. Override in subclasses (like SyncAgent) to enable broadcasting.
+   * @param state - The new state
+   * @param source - Source of the update ("server" or a Connection)
+   */
+  protected _broadcastStateUpdate(state: State, source: Connection | "server") {
+    // No-op in base Agent - subclasses can override to add broadcasting
+  }
+
+  /**
    * Called when the Agent's state is updated
    * @param state Updated state
    * @param source Source of the state update ("server" or a client connection)
    */
   // biome-ignore lint/correctness/noUnusedFunctionParameters: overridden later
   onStateUpdate(state: State | undefined, source: Connection | "server") {
-    // override this to handle state updates
+    // override this to handle state updates (important-comment)
   }
 
   /**

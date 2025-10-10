@@ -1,10 +1,10 @@
 import {
-  Agent,
   createAddressBasedEmailResolver,
   routeAgentEmail,
   routeAgentRequest,
   type AgentEmail
 } from "agents";
+import { SyncAgent } from "agents-sync";
 import PostalMime from "postal-mime";
 
 interface EmailData {
@@ -34,7 +34,7 @@ function assert(condition: unknown, message: string): asserts condition {
   }
 }
 
-export class EmailAgent extends Agent<Env, EmailAgentState> {
+export class EmailAgent extends SyncAgent<Env, EmailAgentState> {
   initialState = {
     autoReplyEnabled: true,
     emailCount: 0,

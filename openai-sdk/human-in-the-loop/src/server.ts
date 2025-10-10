@@ -1,5 +1,6 @@
 import { Agent, type RunResult, RunState, run, tool } from "@openai/agents";
-import { Agent as CFAgent, callable, routeAgentRequest } from "agents";
+import { callable, routeAgentRequest } from "agents";
+import { SyncAgent as CFAgent } from "agents-sync";
 import { z } from "zod";
 
 type Env = {

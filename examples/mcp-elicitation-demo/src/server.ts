@@ -1,13 +1,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent, type ElicitResult } from "agents/mcp";
 import {
-  Agent,
   type AgentNamespace,
   routeAgentRequest,
   callable,
   type Connection,
   type WSMessage
 } from "agents";
+import { SyncAgent } from "agents-sync";
 import { z } from "zod";
 
 type Env = {
@@ -259,7 +259,7 @@ export class McpServerAgent extends McpAgent<Env, { counter: number }, {}> {
   }
 }
 
-export class MyAgent extends Agent<Env, never> {
+export class MyAgent extends SyncAgent<Env, never> {
   async onRequest(request: Request): Promise<Response> {
     const reqUrl = new URL(request.url);
 

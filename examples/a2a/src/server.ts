@@ -12,7 +12,8 @@ import type {
   TaskQueryParams,
   TaskStatusUpdateEvent
 } from "@a2a-js/sdk";
-import { Agent, getAgentByName } from "agents";
+import { getAgentByName } from "agents";
+import { SyncAgent } from "agents-sync";
 import { Hono } from "hono";
 import { A2AHonoApp } from "./app";
 
@@ -61,7 +62,7 @@ const agentCard: AgentCard = {
 };
 
 // A2A Agent that implements A2ARequestHandler directly
-export class MyA2A extends Agent<Env, State> implements A2ARequestHandler {
+export class MyA2A extends SyncAgent<Env, State> implements A2ARequestHandler {
   initialState = {
     tasks: {}
   };

@@ -1,0 +1,43 @@
+{
+  "author": "Cloudflare Inc.",
+  "bugs": {
+    "url": "https://github.com/cloudflare/agents/issues"
+  },
+  "description": "State synchronization extension for Cloudflare Agents",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "cloudflare",
+    "agents",
+    "state-sync"
+  ],
+  "license": "MIT",
+  "main": "src/index.ts",
+  "name": "agents-sync",
+  "peerDependencies": {
+    "agents": "^0.2.9"
+  },
+  "repository": {
+    "directory": "packages/agents-sync",
+    "type": "git",
+    "url": "git+https://github.com/cloudflare/agents.git"
+  },
+  "scripts": {
+    "build": "tsx ./scripts/build.ts"
+  },
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "version": "0.1.0"
+}

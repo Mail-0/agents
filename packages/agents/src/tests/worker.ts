@@ -10,6 +10,7 @@ import {
   type Connection,
   type WSMessage
 } from "../index.ts";
+import { SyncAgent } from "agents-sync";
 import { AIChatAgent } from "../ai-chat-agent.ts";
 import type { UIMessage as ChatMessage } from "ai";
 
@@ -166,7 +167,7 @@ export class TestUserNotificationAgent extends Agent<Env> {
 
 // An Agent that tags connections in onConnect,
 // then echoes whether the tag was observed in onMessage
-export class TestRaceAgent extends Agent<Env> {
+export class TestRaceAgent extends SyncAgent<Env> {
   initialState = { hello: "world" };
   static options = { hibernate: true };
 

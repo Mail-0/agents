@@ -1,10 +1,6 @@
 import { openai } from "@ai-sdk/openai";
-import {
-  Agent,
-  type AgentNamespace,
-  callable,
-  routeAgentRequest
-} from "agents";
+import { type AgentNamespace, callable, routeAgentRequest } from "agents";
+import { SyncAgent } from "agents-sync";
 
 import { generateObject } from "ai";
 import { z } from "zod";
@@ -28,7 +24,7 @@ export type TicTacToeState = {
   winner: Player | null;
 };
 
-export class TicTacToe extends Agent<Env, TicTacToeState> {
+export class TicTacToe extends SyncAgent<Env, TicTacToeState> {
   initialState: TicTacToeState = {
     board: [
       [null, null, null],

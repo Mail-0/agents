@@ -1,18 +1,18 @@
 import { TwilioRealtimeTransportLayer } from "@openai/agents-extensions";
 import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
 import {
-  Agent,
   type AgentNamespace,
   type Connection,
   type ConnectionContext,
   routeAgentRequest
 } from "agents";
+import { SyncAgent } from "agents-sync";
 
 type Env = {
   MyAgent: AgentNamespace<MyAgent>;
 };
 
-export class MyAgent extends Agent<Env> {
+export class MyAgent extends SyncAgent<Env> {
   // don't use hibernation, the dependencies will manually add their own handlers
   static options = { hibernate: false };
 
