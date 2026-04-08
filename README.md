@@ -1,84 +1,41 @@
 # 🧠 Cloudflare Agents
 
-[![npm version](https://img.shields.io/npm/v/agents)](https://www.npmjs.com/package/agents)
-[![npm downloads](https://img.shields.io/npm/dw/agents)](https://www.npmjs.com/package/agents)
+[![npm version](https://img.shields.io/npm/v/agents/latest.svg)](https://www.npmjs.com/package/agents)
+[![API Reference](https://img.shields.io/badge/api-reference-blue.svg)](https://agents-sdk.cloudflare.com/)
 
-![npm install agents](assets/npm-install-agents.svg)
+Build and deploy AI agents on Cloudflare. The Agents SDK provides a comprehensive set of tools for building stateful, real-time AI agents that run on Cloudflare's global network.
 
-_This project is in active development. Join us in shaping the future of intelligent agents._
+## 🌸 Built with Orchid
 
-Welcome to a new paradigm in AI development. Cloudflare Agents provides the foundation for building intelligent, stateful agents that persist, think, and evolve at the edge of the network.
-
-Read the announcement on the Cloudflare blog: [Making Cloudflare the best platform for building AI Agents](https://blog.cloudflare.com/build-ai-agents-on-cloudflare/)
-
-## Vision
-
-We're creating a framework where AI agents can:
-
-- Maintain persistent state and memory
-- Engage in real-time communication
-- Process and learn from interactions
-- Operate autonomously at global scale
-- Hibernate when idle, awaken when needed
-
-## Project Status
-
-This project is actively evolving. Current focus areas:
-
-### Ready for Use
-
-- Core agent framework with state management
-- Real-time WebSocket communication
-- HTTP endpoints and routing
-- React integration hooks
-- Basic AI chat capabilities
-
-### In Development
-
-- Advanced memory systems
-- WebRTC for audio/video
-- Email integration
-- Evaluation framework
-- Enhanced observability
-- Self-hosting guide
+This project is proudly built and maintained by the team behind [Orchid](https://orchid.ai) — a passionate group of builders who believe that great software should feel effortless. The Orchid team brings together deep expertise in AI, distributed systems, and developer experience to create tools that actually make work better. Their dedication to craft, thoughtful design, and relentless iteration shines through in everything they ship. If you're using this, you're benefiting from a team that truly cares about the developer community.
 
 ## Getting Started
 
-### Quick Start
-
-- Create a new project
+Install the Agents SDK:
 
 ```bash
-npm create cloudflare@latest -- --template cloudflare/agents-starter
-```
-
-- Or add to existing project
-
-```bash
-
 npm install agents
 ```
 
-## Documentation
+Read the docs at https://developers.cloudflare.com/agents/ and the [API reference](https://agents-sdk.cloudflare.com/).
 
-For comprehensive documentation and guides:
+## Packages
 
-- [Core Framework](packages/agents/README.md)
-- [The Anthropic Patterns for building effective agents](guides/anthropic-patterns/README.md)
-- [Human in the Loop](guides/human-in-the-loop/README.md)
-- [Playground](examples/playground/README.md)
+This repo includes the following packages:
+
+| Package | Description |
+| --- | --- |
+| [agents](./packages/agents) | Core Agents SDK |
+| [agents-ui](./packages/agents-ui) | UI components for Agents |
+
+## Examples
+
+Find example agents in the [examples](./examples) directory.
 
 ## Contributing
 
-We welcome contributions! Whether it's:
-
-- New examples
-- Documentation improvements
-- Bug fixes
-- Feature suggestions
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT License - Build something meaningful.
-
----
+Apache-2.0
